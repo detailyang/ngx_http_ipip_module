@@ -124,9 +124,12 @@ ngx_http_ipip_exit_process(ngx_cycle_t *cycle)
     imcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_ipip_module);
     if (imcf->ip.name != NULL) {
         munmap(imcf->ip.addr, imcf->ip.size);
+        imcf->ip.addr = NULL;
     }
+
     if (imcf->phone.name != NULL) {
         munmap(imcf->phone.addr, imcf->phone.size);
+        imcf->phone.addr = NULL;
     }
 }
 
@@ -214,6 +217,7 @@ ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     imcf->ip.addr = mmap(NULL, s.st_size, PROT_READ, MAP_SHARED, imcf->ip.fd, 0);
     if (imcf->ip.addr == MAP_FAILED) {
+        close(imcf->ip.fd);
         ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
             "mmap \"%s\" failed", imcf->ip.name);
         return NGX_CONF_ERROR;
@@ -222,6 +226,8 @@ ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     imcf->ip_datx.addr = imcf->ip.addr;
     imcf->ip_datx.offset = NGX_HTTP_IPIP_DATX_BIGEND(imcf->ip_datx.addr);
     imcf->ip_datx.index = imcf->ip_datx.addr + 4;
+
+    close(imcf->ip.fd);
 
     return NGX_CONF_OK;
 }
@@ -269,6 +275,7 @@ ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     imcf->phone.addr = mmap(NULL, s.st_size, PROT_READ, MAP_SHARED, imcf->phone.fd, 0);
     if (imcf->phone.addr == MAP_FAILED) {
+        close(imcf->phone.fd);
         ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
             "mmap \"%s\" failed", imcf->phone.name);
         return NGX_CONF_ERROR;
@@ -298,6 +305,8 @@ ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
         ngx_rbtree_insert(&imcf->phone_txt.rbtree, &pnode->node);
     }
+
+    close(imcf->phone.fd);
 
     return NGX_CONF_OK;
 }
