@@ -37,3 +37,7 @@ t/servroot
 
 fixtures/real_ip.datx
 fixtures/real_phone.txt
+scripts/nginx
+scripts/token
+scripts/ip.lock
+scripts/phone.lock
