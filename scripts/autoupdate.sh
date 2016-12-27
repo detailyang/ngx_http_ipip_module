@@ -1,7 +1,13 @@
 #! /bin/bash
 
-source nginx
-source token
+delimiter="================================"
+
+echo $delimiter
+echo "begin check version on $(date)"
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+source ./var
 
 phonelockfile="phone.lock"
 iplockfile="ip.lock"
@@ -15,13 +21,12 @@ if [[ "$iplock" != "$ipversion" ]]; then
     wget -O ../fixtures/real_ip.datx "http://user.ipip.net/download.php?type=datx&token=$IPTOKEN"
 
     if [[ $? == 0 ]]; then
-        (cd ../ && make test)
 
-        if [[ $? == 0 ]]; then
+        if make -C .. test; then
 
-            if $NGINX -t; then
+            if nginx -t; then
                 echo "ready reload nginx"
-                $NGINX -s reload
+                nginx -s reload
                 echo "$ipversion" > "$iplockfile"
             fi
         fi
@@ -38,17 +43,18 @@ if [[ "$phonelock" != "$phoneversion" ]]; then
     wget -O ../fixtures/real_phone.txt "http://user.ipip.net/download.php?token=$PHONETOKEN"
 
     if [[ $? == 0 ]]; then
-        (cd ../ && make test)
 
-        if [[ $? == 0 ]]; then
+        if make -C .. test; then
 
-            if $NGINX -t; then
+            if nginx -t; then
 
                 echo "ready reload nginx"
-                $NGINX -s reload
+                nginx -s reload
                 echo "$phoneversion" > "$phonelockfile"
             fi
         fi
     fi
 
 fi
+
+echo $delimiter
