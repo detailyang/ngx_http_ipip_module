@@ -1757,10 +1757,14 @@ void   cJSON_AddItemToObjectCS(cJSON *object, const char *string, cJSON *item)
     {
         cJSON_free(item->string);
     }
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-qual"
+#endif
     item->string = (char*)string;
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #pragma GCC diagnostic pop
+#endif
     item->type |= cJSON_StringIsConst;
     cJSON_AddItemToArray(object, item);
 }
