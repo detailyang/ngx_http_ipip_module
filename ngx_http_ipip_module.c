@@ -119,18 +119,7 @@ ngx_module_t ngx_http_ipip_module = {
 static void
 ngx_http_ipip_exit_process(ngx_cycle_t *cycle)
 {
-    ngx_http_ipip_main_conf_t   *imcf;
-
-    imcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_ipip_module);
-    if (imcf->ip.name != NULL) {
-        munmap(imcf->ip.addr, imcf->ip.size);
-        imcf->ip.addr = NULL;
-    }
-
-    if (imcf->phone.name != NULL) {
-        munmap(imcf->phone.addr, imcf->phone.size);
-        imcf->phone.addr = NULL;
-    }
+    return;
 }
 
 
@@ -183,6 +172,7 @@ ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
     ngx_http_ipip_main_conf_t  *imcf = conf;
 
+    ngx_int_t                  n;
     ngx_str_t                 *value;
     struct stat                s;
 
@@ -215,11 +205,18 @@ ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     imcf->ip.size = s.st_size;
     imcf->ip.log = cf->log;
 
-    imcf->ip.addr = mmap(NULL, s.st_size, PROT_READ, MAP_SHARED, imcf->ip.fd, 0);
-    if (imcf->ip.addr == MAP_FAILED) {
+    imcf->ip.addr = ngx_pcalloc(cf->pool, s.st_size);
+    if (imcf->ip.addr == NULL) {
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
+            "try to ngx_pcalloc \"%s\" %d bytes failed", imcf->ip.name, s.st_size);
+        return NGX_CONF_ERROR;
+    }
+
+    n = read(imcf->ip.fd, imcf->ip.addr, s.st_size);
+    if (n != s.st_size) {
         close(imcf->ip.fd);
         ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
-            "mmap \"%s\" failed", imcf->ip.name);
+            "try to read \"%s\" %d bytes failed", imcf->ip.name, s.st_size);
         return NGX_CONF_ERROR;
     }
 
@@ -240,6 +237,7 @@ ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     u_char                    *p;
     ngx_str_t                 *value;
+    ngx_int_t                  n;
     ngx_uint_t                 i, lasti;
     struct stat                s;
     ngx_http_ipip_phone_node_t *pnode;
@@ -273,11 +271,18 @@ ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     imcf->phone.size = s.st_size;
     imcf->phone.log = cf->log;
 
-    imcf->phone.addr = mmap(NULL, s.st_size, PROT_READ, MAP_SHARED, imcf->phone.fd, 0);
-    if (imcf->phone.addr == MAP_FAILED) {
+    imcf->phone.addr = ngx_pcalloc(cf->pool, s.st_size);
+    if (imcf->phone.addr == NULL) {
+        ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
+            "try to ngx_pcalloc \"%s\" %d bytes failed", imcf->phone.name, s.st_size);
+        return NGX_CONF_ERROR;
+    }
+
+    n = read(imcf->phone.fd, imcf->phone.addr, s.st_size);
+    if (n != s.st_size) {
         close(imcf->phone.fd);
         ngx_conf_log_error(NGX_LOG_EMERG, cf, errno,
-            "mmap \"%s\" failed", imcf->phone.name);
+            "try to read \"%s\" %d bytes failed", imcf->phone.name, s.st_size);
         return NGX_CONF_ERROR;
     }
 
