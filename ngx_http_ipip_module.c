@@ -16,6 +16,7 @@ typedef struct {
     ngx_int_t          len;
 } ngx_http_ipip_phone_node_t;
 
+
 typedef struct {
     u_char      *addr;
     u_char      *index;
@@ -84,6 +85,7 @@ static ngx_command_t ngx_http_ipip_commands[] = {
 
       ngx_null_command
 };
+
 
 static ngx_http_module_t  ngx_http_ipip_module_ctx = {
     NULL,                                  /* preconfiguration */
@@ -435,7 +437,7 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
 static ngx_int_t
 ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, char *ip, u_char *result)
 {
-    uint ips[4];
+    uint       ips[4];
     ngx_uint_t ip_prefix_value, ip2long_value, start, max_comp_len, index_offset, index_length;
 
     if (datx->addr == NULL) {
@@ -510,10 +512,8 @@ ngx_http_ipip_arg(u_char *begin, u_char *end, u_char *name, size_t len, ngx_str_
 static ngx_int_t
 ngx_http_ipip_ip_handler(ngx_http_request_t *r)
 {
-    u_char                    *buf = {0};
-
     cJSON                     *root, *data;
-    u_char                    *result, *lastp, *p, *last, *tmpbuf;
+    u_char                    *result, *lastp, *p, *last, *tmpbuf, *buf;
     ssize_t                    len;
     ngx_int_t                  rc;
     ngx_buf_t                 *b;
@@ -575,11 +575,14 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
 
         lastp = p = result;
         for (;*p != '\0'; p++) {
+
             if (*p == '\t') {
+
                 tmpbuf = ngx_pcalloc(r->pool, p - lastp);
                 if (tmpbuf == NULL) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
+
                 ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
                 cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
                 lastp = p + 1;
@@ -587,10 +590,12 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
         }
 
         if (lastp != p) {
+
             tmpbuf = ngx_pcalloc(r->pool, p - lastp);
             if (tmpbuf == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
+
             ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
             cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
         }
@@ -601,6 +606,7 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
     r->headers_out.content_length_n = strlen((char *)buf);
     r->headers_out.status = NGX_HTTP_OK;
     ngx_str_set(&r->headers_out.content_type, "application/json");
+
     rc = ngx_http_send_header(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
@@ -625,10 +631,8 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
 static ngx_int_t
 ngx_http_ipip_phone_handler(ngx_http_request_t *r)
 {
-    u_char                    *buf = {0};
-
     cJSON                     *root, *data;
-    u_char                    *result, *p, *lastp, *last, *tmpbuf;
+    u_char                    *result, *p, *lastp, *last, *tmpbuf, *buf;
     ssize_t                    len;
     ngx_int_t                  rc;
     ngx_buf_t                 *b;
@@ -666,6 +670,7 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
 
     rc = ngx_http_ipip_phone_lookup(&imcf->phone_txt, arg.data, result);
     if (rc != NGX_OK) {
+
         buf = ngx_pcalloc(r->pool, sizeof(NGX_HTTP_IPIP_EMPTY_RESPONSE));
         if (buf == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -680,11 +685,14 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
 
         lastp = p = result + NGX_HTTP_IPIP_PHONE_LEN + 1;
         for (;*p != '\0'; p++) {
+
             if (*p == '\t') {
+
                 tmpbuf = ngx_pcalloc(r->pool, p - lastp);
                 if (tmpbuf == NULL) {
                     return NGX_HTTP_INTERNAL_SERVER_ERROR;
                 }
+
                 ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
                 cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
                 lastp = p + 1;
@@ -706,6 +714,7 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
     r->headers_out.content_length_n = strlen((char *)buf);
     r->headers_out.status = NGX_HTTP_OK;
     ngx_str_set(&r->headers_out.content_type, "application/json");
+
     rc = ngx_http_send_header(r);
     if (rc == NGX_ERROR || rc > NGX_OK || r->header_only) {
         return rc;
@@ -762,6 +771,7 @@ ngx_http_ipip_json_stringify(ngx_http_request_t *r, cJSON *root, u_char **buf, s
 
     out = cJSON_Print(root);
     *len = strlen(out) + 64;
+
     *buf = ngx_pcalloc(r->pool, *len);
     if (*buf == NULL) {
         goto ERROR;
