@@ -584,7 +584,7 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
                 }
 
                 ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
-                cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
+                cJSON_AddStringToObject(data, "dummy", (char *)tmpbuf);
                 lastp = p + 1;
             }
         }
@@ -597,7 +597,7 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
             }
 
             ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
-            cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
+            cJSON_AddStringToObject(data, "dummy", (char *)tmpbuf);
         }
 
         ngx_http_ipip_json_stringify(r, root, &buf, &len);
@@ -694,7 +694,7 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
                 }
 
                 ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
-                cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
+                cJSON_AddStringToObject(data, "dummy", (char *)tmpbuf);
                 lastp = p + 1;
             }
         }
@@ -705,7 +705,7 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
             ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
-            cJSON_AddStringToObject(data, "dummpy", (char *)tmpbuf);
+            cJSON_AddStringToObject(data, "dummy", (char *)tmpbuf);
         }
 
         ngx_http_ipip_json_stringify(r, root, &buf, &len);
