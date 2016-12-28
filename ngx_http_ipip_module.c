@@ -437,14 +437,16 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
 static ngx_int_t
 ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, char *ip, u_char *result)
 {
-    uint       ips[4];
+    ngx_uint_t ips[4];
     ngx_uint_t ip_prefix_value, ip2long_value, start, max_comp_len, index_offset, index_length;
 
     if (datx->addr == NULL) {
         return NGX_ERROR;
     }
 
-    if (sscanf(ip, "%d.%d.%d.%d", &ips[0], &ips[1], &ips[2], &ips[3]) != 4) {
+    if (sscanf(ip, "%u.%u.%u.%u", (unsigned int *)&ips[0], (unsigned int *)&ips[1],
+               (unsigned int *)&ips[2], (unsigned int *)&ips[3]) != 4)
+    {
         return NGX_ERROR;
     }
 
