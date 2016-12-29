@@ -55,7 +55,7 @@ static void *ngx_http_ipip_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_ipip_enable(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
-static ngx_int_t ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *result);
+static ngx_int_t ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ip, u_char *result);
 static ngx_int_t ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt,
                                             u_char *phone, u_char *result);
 static ngx_int_t ngx_http_ipip_handler(ngx_http_request_t *r);
@@ -437,7 +437,7 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
 
 
 static ngx_int_t
-ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *result)
+ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ip, u_char *result)
 {
     u_char     ips[4];
     ngx_uint_t ip_prefix_value, ip2long_value, start, max_comp_len, index_offset, index_length;
@@ -446,7 +446,7 @@ ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *resu
         return NGX_ERROR;
     }
 
-    if (sscanf(ip, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1],
+    if (sscanf((const char *)ip, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1],
                &ips[2], &ips[3]) != 4)
     {
         return NGX_ERROR;
