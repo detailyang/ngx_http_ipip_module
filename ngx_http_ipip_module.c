@@ -1,3 +1,5 @@
+
+
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
@@ -53,9 +55,9 @@ static void *ngx_http_ipip_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_ipip_ip_datx(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_ipip_phone_txt(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
 static char *ngx_http_ipip_enable(ngx_conf_t *cf, ngx_command_t *cmd, void *conf);
-static ngx_int_t ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, char *ip, u_char *result);
-static ngx_int_t
-ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char *result);
+static ngx_int_t ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *result);
+static ngx_int_t ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt,
+                                            u_char *phone, u_char *result);
 static ngx_int_t ngx_http_ipip_handler(ngx_http_request_t *r);
 static ngx_int_t ngx_http_ipip_json_stringify(ngx_http_request_t *r,
                                     cJSON *root, u_char **buf, ssize_t *len);
@@ -399,7 +401,7 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
     ngx_uint_t                     hash;
     ngx_rbtree_t                  *rbtree;
     ngx_rbtree_node_t             *node, *sentinel;
-    ngx_http_ipip_phone_node_t          *pnode;
+    ngx_http_ipip_phone_node_t    *pnode;
 
     if (txt->addr == NULL) {
         return NGX_ERROR;
@@ -435,18 +437,11 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
 
 
 static ngx_int_t
-ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, char *ip, u_char *result)
+ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *result)
 {
-    ngx_uint_t ips[4];
     ngx_uint_t ip_prefix_value, ip2long_value, start, max_comp_len, index_offset, index_length;
 
     if (datx->addr == NULL) {
-        return NGX_ERROR;
-    }
-
-    if (sscanf(ip, "%u.%u.%u.%u", (unsigned int *)&ips[0], (unsigned int *)&ips[1],
-               (unsigned int *)&ips[2], (unsigned int *)&ips[3]) != 4)
-    {
         return NGX_ERROR;
     }
 
@@ -515,7 +510,7 @@ static ngx_int_t
 ngx_http_ipip_ip_handler(ngx_http_request_t *r)
 {
     cJSON                     *root, *data;
-    u_char                    *result, *lastp, *p, *last, *tmpbuf, *buf;
+    u_char                    *result, *lastp, *p, *last, *buf, *tmpbuf;
     ssize_t                    len;
     ngx_int_t                  rc;
     ngx_buf_t                 *b;
@@ -561,8 +556,9 @@ ngx_http_ipip_ip_handler(ngx_http_request_t *r)
 
     */
 
-    rc = ngx_http_ipip_ip_lookup(&imcf->ip_datx, (char *)arg.data, result);
+    rc = ngx_http_ipip_ip_lookup(&imcf->ip_datx, arg.data, result);
     if (rc != NGX_OK) {
+
         buf = ngx_pcalloc(r->pool, sizeof(NGX_HTTP_IPIP_EMPTY_RESPONSE));
         if (buf == NULL) {
             return NGX_HTTP_INTERNAL_SERVER_ERROR;
@@ -634,7 +630,7 @@ static ngx_int_t
 ngx_http_ipip_phone_handler(ngx_http_request_t *r)
 {
     cJSON                     *root, *data;
-    u_char                    *result, *p, *lastp, *last, *tmpbuf, *buf;
+    u_char                    *result, *p, *lastp, *last, *buf, *tmpbuf;
     ssize_t                    len;
     ngx_int_t                  rc;
     ngx_buf_t                 *b;
@@ -702,10 +698,12 @@ ngx_http_ipip_phone_handler(ngx_http_request_t *r)
         }
 
         if (lastp != p) {
+
             tmpbuf = ngx_pcalloc(r->pool, p - lastp);
             if (tmpbuf == NULL) {
                 return NGX_HTTP_INTERNAL_SERVER_ERROR;
             }
+
             ngx_cpystrn(tmpbuf, lastp, p - lastp + 1);
             cJSON_AddStringToObject(data, "dummy", (char *)tmpbuf);
         }
