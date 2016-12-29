@@ -439,9 +439,16 @@ ngx_http_ipip_phone_lookup(ngx_http_ipip_phone_txt_t *txt, u_char *phone, u_char
 static ngx_int_t
 ngx_http_ipip_ip_lookup(ngx_http_ipip_ip_datx_t *datx, u_char *ips, u_char *result)
 {
+    u_char     ips[4];
     ngx_uint_t ip_prefix_value, ip2long_value, start, max_comp_len, index_offset, index_length;
 
     if (datx->addr == NULL) {
+        return NGX_ERROR;
+    }
+
+    if (sscanf(ip, "%hhu.%hhu.%hhu.%hhu", &ips[0], &ips[1],
+               &ips[2], &ips[3]) != 4)
+    {
         return NGX_ERROR;
     }
 
